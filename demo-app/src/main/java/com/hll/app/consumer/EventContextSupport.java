@@ -7,9 +7,9 @@ import java.util.concurrent.ConcurrentSkipListMap;
 public class EventContextSupport {
     private static Map<Object, List<ITask>> firesFunctions = new ConcurrentSkipListMap<>();
 
-    public static <REQ, R> EventContext<REQ, String, R> createForString(Class<REQ> reqClass, Class<R> rClass) {
-        return EventContext.INSTANCE(reqClass, String.class, rClass).cache();
-    }
+//    public static <REQ, R> EventContext<REQ, String, R> createForString(Class<REQ> reqClass, Class<R> rClass) {
+//        return EventContext.INSTANCE(reqClass, String.class, rClass).cache();
+//    }
 
     public static <REQ, R> EventContext<REQ, String, R> create() {
         return EventContext.INSTANCE().cache();
@@ -47,5 +47,8 @@ public class EventContextSupport {
     }
 
 
+    public static void main(String[] args) {
+
+    }
 }
 

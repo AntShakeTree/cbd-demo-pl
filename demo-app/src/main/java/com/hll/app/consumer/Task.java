@@ -8,12 +8,14 @@ import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.concurrent.Callable;
+import java.util.function.BiFunction;
 import java.util.function.Supplier;
+
 @Slf4j
-public class Task<T, R> implements  ITask<T, R> {
-    private final ExceptionFunction<T, R> action;
+public class Task<T, R> implements ITask<T, R> {
+    private final BiFunction<T, Task<T, R>, R> action;
     @Getter
-    private final Callback<T,R> callback;
+    private final Callback<T, R> callback;
     private Supplier<T> supplierContext;
     private T context;
     @Getter
@@ -21,25 +23,27 @@ public class Task<T, R> implements  ITask<T, R> {
     @Getter
     private volatile boolean fail = false;
 
-    private Task(String name, ExceptionFunction<T, R> action, Callback<T,R> callback) {
+    Task(String name, BiFunction<T, Task<T, R>, R> action, Callback<T, R> callback) {
         this.name = name;
         this.action = action;
         this.callback = callback;
     }
 
-    protected Task(String name, ExceptionFunction<T, R> action, Callback<T, R> callback, Supplier<T> context) {
+    protected Task(String name, BiFunction<T, Task<T, R>, R> action, Callback<T, R> callback, Supplier<T> context) {
         this.name = name;
         this.action = action;
         this.callback = callback;
         this.supplierContext = context;
     }
 
-    protected Task(String name, ExceptionFunction<T, R> action, Callback<T, R> callback, T context) {
+    protected Task(String name, BiFunction<T, Task<T, R>, R> action, Callback<T, R> callback, T context) {
         this.name = name;
         this.action = action;
         this.callback = callback;
         this.context = context;
     }
+
+
 
     public ITask context(T context) {
         if (this.context == null) {
@@ -57,7 +61,7 @@ public class Task<T, R> implements  ITask<T, R> {
     @Override
     public R actionAndCallback(T req) {
         try {
-            R r = this.action.applyThrow(req);
+            R r = this.action.apply(req, this);
             this.fail = false;
             return r;
         } catch (Exception e) {
@@ -77,7 +81,7 @@ public class Task<T, R> implements  ITask<T, R> {
      */
     public R actionAndCallback() {
         try {
-            R r = this.action.applyThrow(this.get());
+            R r = this.action.apply(this.get(),this);
             this.fail = false;
             return r;
         } catch (Exception e) {
@@ -98,7 +102,7 @@ public class Task<T, R> implements  ITask<T, R> {
         try {
 
 
-            R r = this.action.applyThrow(this.get());
+            R r = this.action.apply(this.get(),this);
             this.fail = false;
             return r;
         } catch (Exception e) {
@@ -119,7 +123,7 @@ public class Task<T, R> implements  ITask<T, R> {
     @Override
     public R action(T req) {
         try {
-            R r = this.action.applyThrow(req);
+            R r = this.action.apply(req,this);
             this.fail = false;
             return r;
         } catch (Exception e) {
@@ -142,22 +146,7 @@ public class Task<T, R> implements  ITask<T, R> {
     }
 
 
-    public static <T, R> Task<T, R> lazyBuilder(String name, ExceptionFunction<T, R> action, Callback<T, R> callback, Class<T> t) {
-        return new Task<T, R>(name, action, callback);
-    }
 
-    public static <T, R> Task<T, R> lazyBuilder(String name, ExceptionFunction<T, R> action, Class<T> t) {
-        return new Task<T, R>(name, action, Callback.Non());
-    }
-
-
-    public static <T, R> Task<T, R> builderSupplier(String name, ExceptionFunction<T, R> action, Callback<T, R> callback, Supplier<T> context) {
-        return new Task<T, R>(name,action, callback, context);
-    }
-
-    public static <T, R> Task<T, R> builder(String name, ExceptionFunction<T, R> action, Callback<T, R> callback, T context) {
-        return new Task<T, R>(name, action, callback, context);
-    }
 
     @Override
     public R call() {

@@ -68,11 +68,7 @@ public abstract class StateMachineFactory {
     }
 
 
-    public static StateMachine stateMachineConnect(State state) {
-        StateMachine stateMachine = StateMachine.instance(EventContextSupport.createForString(EventReq.class, EventRes.class), state);
-        stateMachine.connect().subscribe();
-        return stateMachine;
-    }
+
 
     public static <T> StateMachine stateMachineConnect(T context, State state) {
         StateMachine stateMachine = StateMachine.instance(context, state);

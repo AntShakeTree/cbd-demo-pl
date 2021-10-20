@@ -19,42 +19,17 @@ import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
+import java.util.function.Function;
 
 @Slf4j
 public class EventContext<REQ, E, R> {
-    //    private  final  Map<E, List<ITask<REQ, R>>> firesFunctions = new ConcurrentSkipListMap<>();
     private static final ThreadLocal<EventContext> LOCAL = new ThreadLocal<>();
     @Setter
     private REQ request;
     private final Map<E, List<R>> resultCaches;
-
-    private EventContext(Class<E> event, Class<REQ> context, Class<R> result) {
-        this.event = event;
-        this.context = context;
-        this.result = result;
-        this.resultCaches = new HashMap<>();
-    }
     private EventContext() {
-
         this.resultCaches = new HashMap<>();
     }
-
-
-
-    private  Class<E> event;
-    private  Class<REQ> context;
-    private  Class<R> result;
-
-    public static <REQ, E, R> EventContext<REQ, E, R> INSTANCE(Class<REQ> contextType, Class<E> eventType, Class<R> resultType) {
-        if (EventContext.find().isPresent()) {
-            return EventContext.find().get();
-        }
-        if (!Comparable.class.isAssignableFrom(eventType)) {
-            throw new IllegalArgumentException("事件类型必须是可排序的。");
-        }
-        return new EventContext<>(eventType, contextType, resultType);
-    }
-
     public static <REQ, E, R> EventContext<REQ, E, R> INSTANCE() {
         if (EventContext.find().isPresent()) {
             return EventContext.find().get();
@@ -64,9 +39,6 @@ public class EventContext<REQ, E, R> {
     }
 
     public static <T> void request(EventReq<T> integerEventReq) {
-        if (!EventContext.find().isPresent()) {
-            EventContextSupport.createForString(EventReq.class, EventRes.class);
-        }
         EventContext.find().ifPresent(eventContext -> eventContext.setRequest(integerEventReq));
     }
 
@@ -91,6 +63,17 @@ public class EventContext<REQ, E, R> {
         EventContextSupport.builder().add(e, iTask);
         return this;
     }
+
+    public EventContext add(E e, String name, Function<REQ, R> function, Callback callback, REQ context) {
+        EventContextSupport.builder().add(e,
+                TaskFactory.builder(name,
+                        function,
+                        callback,
+                        context)
+        );
+        return this;
+    }
+
 
     public static void clear() {
         if (EventContext.find().isPresent()) {
@@ -395,9 +378,6 @@ public class EventContext<REQ, E, R> {
         List<ITask> tasks = EventContextSupport.getTasks(event);
         tasks.stream().peek(REQ -> REQ.context(req)).forEach(REQ -> executorService.submit((Task) REQ));
     }
-
-
-
 
 
     public EventContext cache() {
