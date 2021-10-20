@@ -1,0 +1,38 @@
+/target
+target
+
+### STS ###
+.apt_generated
+.classpath
+.factorypath
+.project
+.settings
+.springBeans
+.sts4-cache
+
+### IntelliJ IDEA ###
+.idea
+*.iws
+*.iml
+*.ipr
+
+.mvn
+.DS_Store
+### NetBeans ###
+/nbproject/private/
+/build/
+/nbbuild/
+/dist/
+/nbdist/
+/.nb-gradle/
+/LOG_HOME_IS_UNDEFINED/
+/data/
+/src/main/resources/bootstrap_test.yml
+logs/
+/demo-interfaces/target/
+/start/target/
+/demo-Infrastructure/target/
+/demo-domain/target/
+/demo-app/target/
+/demo-app/target/
+/demo-app/target/
